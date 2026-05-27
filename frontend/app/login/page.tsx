@@ -4,10 +4,20 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Eye, EyeOff, Sparkles, ArrowRight, Github, Chrome } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import {
+  Sparkles,
+  Eye,
+  EyeOff,
+  Mail,
+  ArrowRight,
+} from "lucide-react"
+
+import {
+  GlassCard,
+  NeonButton,
+  FloatingOrb,
+} from "@/components/zentrix/ui-components"
 
 import API from "@/services/api"
 
@@ -17,35 +27,66 @@ export default function LoginPage() {
 
   const [showPassword, setShowPassword] = useState(false)
 
-  const [email, setEmail] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
-  const [password, setPassword] = useState("")
+  const [formData, setFormData] = useState({
 
-  // LOGIN FUNCTION
-  const handleLogin = async () => {
+    email: "",
+    password: "",
+
+  })
+
+  const handleLogin = async (e: React.FormEvent) => {
+
+    e.preventDefault()
 
     try {
 
+      setIsLoading(true)
+
       const res = await API.post("/auth/login", {
 
-        email,
-        password
+        email: formData.email,
+
+        password: formData.password,
 
       })
 
-      // save token
+      console.log(res.data)
+
+      // SAVE TOKEN
+
       localStorage.setItem("token", res.data.token)
+
+      localStorage.setItem(
+
+        "user",
+
+        JSON.stringify(res.data.user)
+
+      )
 
       alert("Login Successful 🚀")
 
-      // redirect
+      // REDIRECT
+
       router.push("/dashboard")
 
-    } catch (err) {
+    } catch (err: any) {
 
       console.log(err)
 
-      alert("Invalid credentials")
+      alert(
+
+        err?.response?.data?.message ||
+
+        "Login Failed ❌"
+
+      )
+
+    } finally {
+
+      setIsLoading(false)
 
     }
 
@@ -53,261 +94,241 @@ export default function LoginPage() {
 
   return (
 
-    <div className="min-h-screen bg-black relative overflow-hidden flex items-center justify-center p-6">
+    <div className="min-h-screen gradient-bg relative overflow-hidden flex items-center justify-center p-6">
 
-      {/* Background Glow */}
+      {/* Floating Orbs */}
 
-      <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl"></div>
+      <FloatingOrb className="top-10 -right-20" color="purple" size="lg" />
 
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
+      <FloatingOrb className="bottom-10 -left-20" color="cyan" size="lg" />
 
-      {/* Animated Grid */}
+      <FloatingOrb className="top-1/3 right-1/4" color="cyan" size="sm" />
 
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,255,0.03)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
+      {/* Grid */}
 
-      {/* Login Card */}
+      <div className="absolute inset-0 grid-pattern opacity-10" />
 
-      <motion.div
+      <div className="relative z-10 w-full max-w-md">
 
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
+        {/* Logo */}
 
-        className="relative z-10 w-full max-w-md"
+        <motion.div
 
-      >
+          initial={{ opacity: 0, y: -20 }}
 
-        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+          animate={{ opacity: 1, y: 0 }}
 
-          {/* Logo */}
+          className="text-center mb-8"
 
-          <div className="flex justify-center mb-8">
+        >
 
-            <motion.div
+          <Link href="/" className="inline-flex items-center gap-3 mb-4">
 
-              whileHover={{ scale: 1.1, rotate: 5 }}
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
 
-              className="relative"
+              <Sparkles className="w-7 h-7 text-white" />
 
-            >
+            </div>
 
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-cyan-500/25">
-
-                <Sparkles className="w-10 h-10 text-white" />
-
-              </div>
-
-            </motion.div>
-
-          </div>
-
-          {/* Heading */}
-
-          <div className="text-center mb-8">
-
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-3">
+            <span className="text-3xl font-bold glow-text-cyan">
 
               Zentrix AI
 
-            </h1>
+            </span>
 
-            <p className="text-gray-400 text-lg">
-              Welcome back to the future
-            </p>
+          </Link>
 
-          </div>
+          <p className="text-muted-foreground">
 
-          {/* Form */}
+            Welcome back to Zentrix AI.
 
-          <div className="space-y-6">
+          </p>
 
-            {/* Email */}
+        </motion.div>
 
-            <div className="space-y-2">
+        {/* Login Card */}
 
-              <label className="text-sm font-medium text-gray-300">
-                Email
-              </label>
+        <motion.div
 
-              <Input
+          initial={{ opacity: 0, y: 20 }}
 
-                type="email"
+          animate={{ opacity: 1, y: 0 }}
 
-                placeholder="Enter your email"
+          transition={{ delay: 0.1 }}
 
-                value={email}
+        >
 
-                onChange={(e) => setEmail(e.target.value)}
+          <GlassCard className="p-8 glow-cyan">
 
-                className="h-14 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-cyan-400 focus:ring-cyan-400/20 rounded-xl"
+            <form onSubmit={handleLogin} className="space-y-5">
 
-              />
+              {/* Email */}
 
-            </div>
+              <div className="space-y-2">
 
-            {/* Password */}
+                <label className="text-sm font-medium">
 
-            <div className="space-y-2">
+                  Email Address
 
-              <label className="text-sm font-medium text-gray-300">
-                Password
-              </label>
+                </label>
 
-              <div className="relative">
+                <div className="relative">
 
-                <Input
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
 
-                  type={showPassword ? "text" : "password"}
+                  <input
 
-                  placeholder="Enter your password"
+                    type="email"
 
-                  value={password}
+                    value={formData.email}
 
-                  onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) =>
 
-                  className="h-14 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-purple-400 focus:ring-purple-400/20 rounded-xl pr-12"
+                      setFormData({
 
-                />
+                        ...formData,
 
-                <button
+                        email: e.target.value,
 
-                  type="button"
+                      })
 
-                  onClick={() => setShowPassword(!showPassword)}
+                    }
 
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                    placeholder="you@example.com"
 
-                >
+                    required
 
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
+                    className="w-full pl-10 pr-4 py-3 rounded-lg bg-muted/50 border border-border focus:border-primary focus:outline-none"
 
-                </button>
+                  />
+
+                </div>
 
               </div>
 
-            </div>
+              {/* Password */}
 
-            {/* Forgot Password */}
+              <div className="space-y-2">
 
-            <div className="flex justify-end">
+                <label className="text-sm font-medium">
 
-              <Link
+                  Password
 
-                href="#"
+                </label>
 
-                className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+                <div className="relative">
 
-              >
+                  <input
 
-                Forgot password?
+                    type={showPassword ? "text" : "password"}
 
-              </Link>
+                    value={formData.password}
 
-            </div>
+                    onChange={(e) =>
 
-            {/* Login Button */}
+                      setFormData({
 
-            <Button
+                        ...formData,
 
-              onClick={handleLogin}
+                        password: e.target.value,
 
-              className="w-full h-14 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-semibold rounded-xl shadow-lg shadow-cyan-500/25 transition-all duration-300 hover:scale-[1.02]"
+                      })
 
-            >
+                    }
 
-              Sign In
+                    placeholder="Enter password"
 
-              <ArrowRight className="w-5 h-5 ml-2" />
+                    required
 
-            </Button>
+                    className="w-full pl-4 pr-12 py-3 rounded-lg bg-muted/50 border border-border focus:border-primary focus:outline-none"
 
-            {/* Divider */}
+                  />
 
-            <div className="relative my-8">
+                  <button
 
-              <div className="absolute inset-0 flex items-center">
+                    type="button"
 
-                <div className="w-full border-t border-white/10"></div>
+                    onClick={() => setShowPassword(!showPassword)}
+
+                    className="absolute right-3 top-1/2 -translate-y-1/2"
+
+                  >
+
+                    {showPassword ? (
+
+                      <EyeOff className="w-5 h-5" />
+
+                    ) : (
+
+                      <Eye className="w-5 h-5" />
+
+                    )}
+
+                  </button>
+
+                </div>
 
               </div>
 
-              <div className="relative flex justify-center text-sm">
+              {/* Submit */}
 
-                <span className="px-4 bg-black text-gray-400">
-                  Or continue with
-                </span>
+              <NeonButton
 
-              </div>
+                type="submit"
 
-            </div>
+                variant="cyan"
 
-            {/* Social Buttons */}
+                className="w-full flex items-center justify-center gap-2"
 
-            <div className="grid grid-cols-2 gap-4">
-
-              <Button
-
-                variant="outline"
-
-                className="h-12 bg-white/5 border-white/10 text-white hover:bg-white/10 rounded-xl"
+                disabled={isLoading}
 
               >
 
-                <Github className="w-5 h-5 mr-2" />
+                {isLoading ? (
 
-                GitHub
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
 
-              </Button>
+                ) : (
 
-              <Button
+                  <>
 
-                variant="outline"
+                    Login
 
-                className="h-12 bg-white/5 border-white/10 text-white hover:bg-white/10 rounded-xl"
+                    <ArrowRight className="w-5 h-5" />
 
-              >
+                  </>
 
-                <Chrome className="w-5 h-5 mr-2" />
+                )}
 
-                Google
+              </NeonButton>
 
-              </Button>
+            </form>
 
-            </div>
+            {/* Footer */}
 
-          </div>
+            <p className="text-center mt-6 text-sm text-muted-foreground">
 
-          {/* Footer */}
-
-          <div className="mt-8 text-center">
-
-            <p className="text-gray-400">
-
-              Don’t have an account?{" "}
+              Don&apos;t have an account?{" "}
 
               <Link
 
                 href="/register"
 
-                className="text-cyan-400 hover:text-cyan-300 font-medium"
+                className="text-primary hover:underline"
 
               >
 
-                Sign up
+                Create one
 
               </Link>
 
             </p>
 
-          </div>
+          </GlassCard>
 
-        </div>
+        </motion.div>
 
-      </motion.div>
+      </div>
 
     </div>
 

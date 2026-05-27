@@ -1,46 +1,61 @@
-const OpenAI = require("openai");
+const Groq = require("groq-sdk")
 
-const client = new OpenAI({
+const groq = new Groq({
 
-    apiKey: process.env.GROQ_API_KEY,
+  apiKey: process.env.GROQ_API_KEY,
 
-    baseURL: "https://api.groq.com/openai/v1"
+})
 
-});
+const chatAI = async (req, res) => {
 
-const askAI = async (req, res) => {
+  try {
 
-    try {
+    const { message } = req.body
 
-        const { prompt } = req.body;
+    const completion = await groq.chat.completions.create({
 
-        const completion =
-            await client.chat.completions.create({
+      messages: [
 
-                model: "llama-3.1-8b-instant",
+        {
 
-                messages: [
-                    {
-                        role: "user",
-                        content: prompt
-                    }
-                ]
+          role: "user",
 
-            });
+          content: message,
 
-        res.json({
-            response:
-                completion.choices[0].message.content
-        });
+        },
 
-    } catch (err) {
+      ],
 
-        console.log(err);
+      model: "llama-3.3-70b-versatile",
 
-        res.status(500).json(err.message);
+    })
 
-    }
+    res.json({
 
-};
+      response:
 
-module.exports = { askAI };
+        completion.choices[0]?.message?.content ||
+
+        "No response",
+
+    })
+
+  } catch (error) {
+
+    console.log(error)
+
+    res.status(500).json({
+
+      message: "AI Error",
+
+    })
+
+  }
+
+}
+
+module.exports = {
+
+  chatAI,
+
+}

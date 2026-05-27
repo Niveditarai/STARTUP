@@ -1,443 +1,255 @@
 "use client"
 
 import { useState } from "react"
-import { Sidebar } from "@/components/sidebar"
-import { TopNav } from "@/components/top-nav"
-import { GlassCard } from "@/components/glass-card"
-import { motion, AnimatePresence } from "framer-motion"
-import {
-  Plus,
-  FolderKanban,
-  MoreVertical,
-  Users,
-  Calendar,
-  Star,
-  StarOff,
-  Grid3X3,
-  List,
-  Search,
-  Filter,
+import { motion } from "framer-motion"
+import { 
+  FolderKanban, 
+  Plus, 
+  Users, 
+  GitBranch,
+  Clock,
+  CheckCircle,
+  Circle,
+  MoreHorizontal,
+  ExternalLink,
+  Search
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
+import { GlassCard, NeonButton, GradientText } from "@/components/zentrix/ui-components"
+import { Sidebar, TopNav } from "@/components/zentrix/navigation"
 
-interface Project {
-  id: string
-  name: string
-  description: string
-  status: "active" | "completed" | "archived"
-  progress: number
-  tasks: number
-  completedTasks: number
-  team: number
-  dueDate: string
-  starred: boolean
-  color: "cyan" | "purple"
-}
-
-const initialProjects: Project[] = [
+const projects = [
   {
     id: "1",
-    name: "AI Content Generator",
-    description: "Automated content generation using GPT-4 for marketing materials",
-    status: "active",
+    name: "Portfolio Website",
+    description: "Personal portfolio showcasing projects and skills",
+    status: "in-progress",
     progress: 75,
-    tasks: 24,
-    completedTasks: 18,
-    team: 4,
-    dueDate: "2024-02-15",
-    starred: true,
-    color: "cyan",
+    members: [
+      { name: "Alex", avatar: "A" },
+    ],
+    tasks: { completed: 12, total: 16 },
+    github: "alexjohnson/portfolio-v2",
+    lastUpdated: "2 hours ago",
+    tags: ["React", "Next.js", "Tailwind"]
   },
   {
     id: "2",
-    name: "Data Analysis Pipeline",
-    description: "Real-time data processing and visualization dashboard",
-    status: "active",
-    progress: 90,
-    tasks: 18,
-    completedTasks: 16,
-    team: 3,
-    dueDate: "2024-01-30",
-    starred: true,
-    color: "purple",
+    name: "E-commerce API",
+    description: "RESTful API for e-commerce platform with authentication",
+    status: "in-progress",
+    progress: 45,
+    members: [
+      { name: "Alex", avatar: "A" },
+      { name: "Sarah", avatar: "S" },
+      { name: "Mike", avatar: "M" },
+    ],
+    tasks: { completed: 8, total: 18 },
+    github: "team-dev/ecommerce-api",
+    lastUpdated: "1 day ago",
+    tags: ["Node.js", "Express", "MongoDB"]
   },
   {
     id: "3",
-    name: "Customer Chatbot",
-    description: "AI-powered customer support chatbot with sentiment analysis",
-    status: "active",
-    progress: 30,
-    tasks: 12,
-    completedTasks: 4,
-    team: 2,
-    dueDate: "2024-03-01",
-    starred: false,
-    color: "cyan",
+    name: "Chat Application",
+    description: "Real-time chat app with Socket.io",
+    status: "completed",
+    progress: 100,
+    members: [
+      { name: "Alex", avatar: "A" },
+      { name: "John", avatar: "J" },
+    ],
+    tasks: { completed: 24, total: 24 },
+    github: "alexjohnson/realtime-chat",
+    lastUpdated: "2 weeks ago",
+    tags: ["React", "Socket.io", "Node.js"]
   },
   {
     id: "4",
-    name: "Mobile App Redesign",
-    description: "Complete UI/UX overhaul for iOS and Android applications",
-    status: "active",
-    progress: 60,
-    tasks: 32,
-    completedTasks: 19,
-    team: 5,
-    dueDate: "2024-02-28",
-    starred: false,
-    color: "purple",
-  },
-  {
-    id: "5",
-    name: "API Integration Hub",
-    description: "Centralized API management and integration platform",
-    status: "completed",
-    progress: 100,
-    tasks: 15,
-    completedTasks: 15,
-    team: 3,
-    dueDate: "2024-01-15",
-    starred: false,
-    color: "cyan",
-  },
-  {
-    id: "6",
-    name: "Security Audit System",
-    description: "Automated security scanning and vulnerability detection",
-    status: "active",
-    progress: 45,
-    tasks: 20,
-    completedTasks: 9,
-    team: 4,
-    dueDate: "2024-02-20",
-    starred: true,
-    color: "purple",
+    name: "Task Manager",
+    description: "Kanban-style task management application",
+    status: "planning",
+    progress: 10,
+    members: [
+      { name: "Alex", avatar: "A" },
+    ],
+    tasks: { completed: 2, total: 20 },
+    github: null,
+    lastUpdated: "3 days ago",
+    tags: ["TypeScript", "React", "Prisma"]
   },
 ]
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>(initialProjects)
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+  const [filter, setFilter] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
-  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "completed" | "archived">("all")
 
-  const toggleStar = (id: string) => {
-    setProjects((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, starred: !p.starred } : p))
-    )
-  }
-
-  const filteredProjects = projects.filter((project) => {
-    const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesFilter = filterStatus === "all" || project.status === filterStatus
-    return matchesSearch && matchesFilter
+  const filteredProjects = projects.filter(project => {
+    if (filter !== "all" && project.status !== filter) return false
+    if (searchQuery && !project.name.toLowerCase().includes(searchQuery.toLowerCase())) return false
+    return true
   })
 
   return (
-    <div className="min-h-screen flex">
-      <Sidebar />
-      
-      <div className="flex-1 ml-[260px]">
-        <TopNav />
+    <div className="min-h-screen gradient-bg">
+      <Sidebar currentPath="/projects" />
+      <div className="ml-64 transition-all duration-300">
+        <TopNav userName="Alex" />
         
-        <main className="p-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-8"
-          >
+        <main className="p-6">
+          <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-foreground mb-2">Projects</h1>
-                <p className="text-muted-foreground">
-                  Manage and organize all your projects in one place
-                </p>
+                <h1 className="text-3xl font-bold mb-2">Project <GradientText>Collaboration</GradientText></h1>
+                <p className="text-muted-foreground">Manage and collaborate on your projects</p>
               </div>
-              <Button className="bg-gradient-to-r from-cyan to-purple hover:opacity-90 glow-cyan text-primary-foreground">
-                <Plus className="w-4 h-4 mr-2" />
+              <NeonButton variant="cyan" className="flex items-center gap-2">
+                <Plus className="w-5 h-5" />
                 New Project
-              </Button>
+              </NeonButton>
             </div>
 
             {/* Filters */}
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4 flex-1">
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search projects..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 bg-secondary/50 border-border/50 focus:border-cyan"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                      "glass border-border/50",
-                      filterStatus === "all" && "border-cyan text-cyan"
-                    )}
-                    onClick={() => setFilterStatus("all")}
-                  >
-                    All
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                      "glass border-border/50",
-                      filterStatus === "active" && "border-cyan text-cyan"
-                    )}
-                    onClick={() => setFilterStatus("active")}
-                  >
-                    Active
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                      "glass border-border/50",
-                      filterStatus === "completed" && "border-cyan text-cyan"
-                    )}
-                    onClick={() => setFilterStatus("completed")}
-                  >
-                    Completed
-                  </Button>
-                </div>
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search projects..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 rounded-lg bg-muted/50 border border-border focus:border-primary focus:outline-none"
+                />
               </div>
-
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="text-muted-foreground">
-                  <Filter className="w-5 h-5" />
-                </Button>
-                <div className="flex items-center border border-border/50 rounded-lg p-1">
+              <div className="flex gap-2">
+                {["all", "in-progress", "completed", "planning"].map((f) => (
                   <button
-                    onClick={() => setViewMode("grid")}
-                    className={cn(
-                      "p-2 rounded-md transition-colors",
-                      viewMode === "grid" ? "bg-cyan/20 text-cyan" : "text-muted-foreground hover:text-foreground"
-                    )}
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      filter === f 
+                        ? "bg-primary text-primary-foreground" 
+                        : "bg-muted/50 hover:bg-muted"
+                    }`}
                   >
-                    <Grid3X3 className="w-4 h-4" />
+                    {f.charAt(0).toUpperCase() + f.slice(1).replace("-", " ")}
                   </button>
-                  <button
-                    onClick={() => setViewMode("list")}
-                    className={cn(
-                      "p-2 rounded-md transition-colors",
-                      viewMode === "list" ? "bg-cyan/20 text-cyan" : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <List className="w-4 h-4" />
-                  </button>
-                </div>
+                ))}
               </div>
             </div>
 
-            {/* Projects Grid/List */}
-            <AnimatePresence mode="wait">
-              {viewMode === "grid" ? (
+            {/* Projects Grid */}
+            <div className="grid md:grid-cols-2 gap-6">
+              {filteredProjects.map((project) => (
                 <motion.div
-                  key="grid"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                  key={project.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileHover={{ y: -5 }}
                 >
-                  {filteredProjects.map((project, index) => (
-                    <motion.div
-                      key={project.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <GlassCard className="h-full" glow={project.starred ? project.color : "none"}>
-                        <div className="flex items-start justify-between mb-4">
-                          <div className={cn(
-                            "w-12 h-12 rounded-xl flex items-center justify-center",
-                            project.color === "cyan" ? "bg-cyan/20" : "bg-purple/20"
-                          )}>
-                            <FolderKanban className={cn(
-                              "w-6 h-6",
-                              project.color === "cyan" ? "text-cyan" : "text-purple"
-                            )} />
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => toggleStar(project.id)}
-                              className="p-1 hover:bg-secondary/50 rounded-lg transition-colors"
+                  <GlassCard 
+                    glowColor={project.status === "completed" ? "purple" : "cyan"} 
+                    hover={false}
+                    className="h-full"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${
+                          project.status === "completed" ? "bg-emerald-500/20" :
+                          project.status === "in-progress" ? "bg-primary/20" : "bg-amber-500/20"
+                        }`}>
+                          <FolderKanban className={`w-5 h-5 ${
+                            project.status === "completed" ? "text-emerald-400" :
+                            project.status === "in-progress" ? "text-primary" : "text-amber-400"
+                          }`} />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">{project.name}</h3>
+                          <span className={`text-xs px-2 py-0.5 rounded ${
+                            project.status === "completed" ? "bg-emerald-500/20 text-emerald-400" :
+                            project.status === "in-progress" ? "bg-primary/20 text-primary" :
+                            "bg-amber-500/20 text-amber-400"
+                          }`}>
+                            {project.status.replace("-", " ")}
+                          </span>
+                        </div>
+                      </div>
+                      <button className="p-2 hover:bg-muted/50 rounded-lg transition-colors">
+                        <MoreHorizontal className="w-5 h-5 text-muted-foreground" />
+                      </button>
+                    </div>
+
+                    <p className="text-sm text-muted-foreground mb-4">{project.description}</p>
+
+                    {/* Progress */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between text-sm mb-2">
+                        <span className="text-muted-foreground">Progress</span>
+                        <span>{project.progress}%</span>
+                      </div>
+                      <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${project.progress}%` }}
+                          transition={{ duration: 1 }}
+                          className={`h-full rounded-full ${
+                            project.status === "completed" ? "bg-emerald-400" : "bg-primary"
+                          }`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {project.tags.map((tag) => (
+                        <span key={tag} className="px-2 py-1 rounded text-xs bg-muted/50">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-4 border-t border-border">
+                      <div className="flex items-center gap-4">
+                        {/* Team Members */}
+                        <div className="flex -space-x-2">
+                          {project.members.slice(0, 3).map((member, idx) => (
+                            <div
+                              key={idx}
+                              className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-xs font-bold border-2 border-background"
                             >
-                              {project.starred ? (
-                                <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                              ) : (
-                                <StarOff className="w-5 h-5 text-muted-foreground" />
-                              )}
-                            </button>
-                            <button className="p-1 hover:bg-secondary/50 rounded-lg transition-colors">
-                              <MoreVertical className="w-5 h-5 text-muted-foreground" />
-                            </button>
-                          </div>
+                              {member.avatar}
+                            </div>
+                          ))}
+                          {project.members.length > 3 && (
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs border-2 border-background">
+                              +{project.members.length - 3}
+                            </div>
+                          )}
                         </div>
-
-                        <h3 className="text-lg font-semibold text-foreground mb-2">{project.name}</h3>
-                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                          {project.description}
-                        </p>
-
-                        {/* Progress */}
-                        <div className="mb-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm text-muted-foreground">Progress</span>
-                            <span className={cn(
-                              "text-sm font-medium",
-                              project.color === "cyan" ? "text-cyan" : "text-purple"
-                            )}>
-                              {project.progress}%
-                            </span>
-                          </div>
-                          <div className="h-2 rounded-full bg-secondary overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${project.progress}%` }}
-                              transition={{ duration: 0.8, delay: index * 0.05 }}
-                              className={cn(
-                                "h-full rounded-full",
-                                project.color === "cyan"
-                                  ? "bg-gradient-to-r from-cyan to-cyan-glow"
-                                  : "bg-gradient-to-r from-purple to-purple-glow"
-                              )}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Meta */}
-                        <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Users className="w-4 h-4" />
-                              {project.team}
-                            </span>
-                            <span>{project.completedTasks}/{project.tasks} tasks</span>
-                          </div>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Calendar className="w-4 h-4" />
-                            {new Date(project.dueDate).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                            })}
-                          </div>
-                        </div>
-                      </GlassCard>
-                    </motion.div>
-                  ))}
+                        {/* Tasks */}
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">
+                          <CheckCircle className="w-4 h-4" />
+                          {project.tasks.completed}/{project.tasks.total}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {project.github && (
+                          <a href={`https://github.com/${project.github}`} className="p-2 hover:bg-muted/50 rounded-lg transition-colors">
+                            <GitBranch className="w-4 h-4 text-muted-foreground" />
+                          </a>
+                        )}
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {project.lastUpdated}
+                        </span>
+                      </div>
+                    </div>
+                  </GlassCard>
                 </motion.div>
-              ) : (
-                <motion.div
-                  key="list"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="space-y-4"
-                >
-                  {filteredProjects.map((project, index) => (
-                    <motion.div
-                      key={project.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <GlassCard className="p-4" glow={project.starred ? project.color : "none"}>
-                        <div className="flex items-center gap-6">
-                          <div className={cn(
-                            "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
-                            project.color === "cyan" ? "bg-cyan/20" : "bg-purple/20"
-                          )}>
-                            <FolderKanban className={cn(
-                              "w-6 h-6",
-                              project.color === "cyan" ? "text-cyan" : "text-purple"
-                            )} />
-                          </div>
-
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-3 mb-1">
-                              <h3 className="font-semibold text-foreground truncate">{project.name}</h3>
-                              <span className={cn(
-                                "px-2 py-0.5 rounded-full text-xs font-medium",
-                                project.status === "active"
-                                  ? "bg-cyan/20 text-cyan"
-                                  : project.status === "completed"
-                                  ? "bg-green-500/20 text-green-400"
-                                  : "bg-secondary text-muted-foreground"
-                              )}>
-                                {project.status}
-                              </span>
-                            </div>
-                            <p className="text-sm text-muted-foreground truncate">{project.description}</p>
-                          </div>
-
-                          <div className="flex items-center gap-6 shrink-0">
-                            <div className="w-32">
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="text-xs text-muted-foreground">Progress</span>
-                                <span className={cn(
-                                  "text-xs font-medium",
-                                  project.color === "cyan" ? "text-cyan" : "text-purple"
-                                )}>
-                                  {project.progress}%
-                                </span>
-                              </div>
-                              <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
-                                <div
-                                  className={cn(
-                                    "h-full rounded-full",
-                                    project.color === "cyan"
-                                      ? "bg-gradient-to-r from-cyan to-cyan-glow"
-                                      : "bg-gradient-to-r from-purple to-purple-glow"
-                                  )}
-                                  style={{ width: `${project.progress}%` }}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                              <span className="flex items-center gap-1">
-                                <Users className="w-4 h-4" />
-                                {project.team}
-                              </span>
-                              <span>{project.completedTasks}/{project.tasks}</span>
-                              <span className="flex items-center gap-1">
-                                <Calendar className="w-4 h-4" />
-                                {new Date(project.dueDate).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                })}
-                              </span>
-                            </div>
-
-                            <button
-                              onClick={() => toggleStar(project.id)}
-                              className="p-2 hover:bg-secondary/50 rounded-lg transition-colors"
-                            >
-                              {project.starred ? (
-                                <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                              ) : (
-                                <StarOff className="w-5 h-5 text-muted-foreground" />
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      </GlassCard>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+              ))}
+            </div>
+          </div>
         </main>
       </div>
     </div>

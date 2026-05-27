@@ -4,19 +4,22 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-
 import {
+  Sparkles,
   Eye,
   EyeOff,
-  Sparkles,
-  ArrowRight,
   Github,
-  Chrome,
+  Mail,
+  User,
+  ArrowRight,
   Check,
 } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import {
+  GlassCard,
+  NeonButton,
+  FloatingOrb,
+} from "@/components/zentrix/ui-components"
 
 import API from "@/services/api"
 
@@ -26,52 +29,98 @@ export default function RegisterPage() {
 
   const [showPassword, setShowPassword] = useState(false)
 
+  const [isLoading, setIsLoading] = useState(false)
+
   const [formData, setFormData] = useState({
 
     name: "",
     email: "",
     password: "",
+    confirmPassword: "",
 
   })
 
-  // update form
-  const updateForm = (field: string, value: string) => {
+  const passwordStrength = () => {
 
-    setFormData({
+    const { password } = formData
 
-      ...formData,
-      [field]: value,
+    if (password.length === 0) return 0
 
-    })
+    let strength = 0
+
+    if (password.length >= 8) strength++
+
+    if (/[A-Z]/.test(password)) strength++
+
+    if (/[0-9]/.test(password)) strength++
+
+    if (/[^A-Za-z0-9]/.test(password)) strength++
+
+    return strength
 
   }
 
-  // REGISTER FUNCTION
-  const handleRegister = async () => {
+  const strengthLabels = ["Weak", "Fair", "Good", "Strong"]
+
+  const strengthColors = [
+
+    "bg-red-500",
+
+    "bg-yellow-500",
+
+    "bg-blue-500",
+
+    "bg-green-500",
+
+  ]
+
+  const handleSubmit = async (e: React.FormEvent) => {
+
+    e.preventDefault()
+
+    if (formData.password !== formData.confirmPassword) {
+
+      alert("Passwords do not match ❌")
+
+      return
+
+    }
 
     try {
+
+      setIsLoading(true)
 
       const res = await API.post("/auth/register", {
 
         name: formData.name,
+
         email: formData.email,
+
         password: formData.password,
 
       })
 
-      // save token
-      localStorage.setItem("token", res.data.token)
+      console.log(res.data)
 
       alert("Registration Successful 🚀")
 
-      // redirect
       router.push("/login")
 
-    } catch (err) {
+    } catch (err: any) {
 
       console.log(err)
 
-      alert("Registration Failed")
+      alert(
+
+        err?.response?.data?.message ||
+
+        "Registration Failed ❌"
+
+      )
+
+    } finally {
+
+      setIsLoading(false)
 
     }
 
@@ -79,283 +128,359 @@ export default function RegisterPage() {
 
   return (
 
-    <div className="min-h-screen bg-black relative overflow-hidden flex items-center justify-center p-6">
+    <div className="min-h-screen gradient-bg relative overflow-hidden flex items-center justify-center p-6">
 
-      {/* Background Glow */}
+      {/* Floating Orbs */}
 
-      <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl"></div>
+      <FloatingOrb className="top-10 -right-20" color="purple" size="lg" />
 
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
+      <FloatingOrb className="bottom-10 -left-20" color="cyan" size="lg" />
 
-      {/* Animated Grid */}
+      <FloatingOrb className="top-1/3 right-1/4" color="cyan" size="sm" />
 
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,255,0.03)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
+      {/* Grid */}
 
-      {/* Register Card */}
+      <div className="absolute inset-0 grid-pattern opacity-10" />
 
-      <motion.div
+      <div className="relative z-10 w-full max-w-md">
 
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
+        {/* Logo */}
 
-        className="relative z-10 w-full max-w-md"
+        <motion.div
 
-      >
+          initial={{ opacity: 0, y: -20 }}
 
-        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+          animate={{ opacity: 1, y: 0 }}
 
-          {/* Logo */}
+          className="text-center mb-8"
 
-          <div className="flex justify-center mb-8">
+        >
 
-            <motion.div
+          <Link href="/" className="inline-flex items-center gap-3 mb-4">
 
-              whileHover={{ scale: 1.1, rotate: 5 }}
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
 
-              className="relative"
-
-            >
-
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-cyan-500/25">
-
-                <Sparkles className="w-10 h-10 text-white" />
-
-              </div>
-
-            </motion.div>
-
-          </div>
-
-          {/* Heading */}
-
-          <div className="text-center mb-8">
-
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-3">
-
-              Create Account
-
-            </h1>
-
-            <p className="text-gray-400 text-lg">
-              Join Zentrix AI today 🚀
-            </p>
-
-          </div>
-
-          {/* Form */}
-
-          <div className="space-y-6">
-
-            {/* Name */}
-
-            <div className="space-y-2">
-
-              <label className="text-sm font-medium text-gray-300">
-                Full Name
-              </label>
-
-              <Input
-
-                type="text"
-
-                placeholder="Enter your name"
-
-                value={formData.name}
-
-                onChange={(e) =>
-                  updateForm("name", e.target.value)
-                }
-
-                className="h-14 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-cyan-400 focus:ring-cyan-400/20 rounded-xl"
-
-              />
+              <Sparkles className="w-7 h-7 text-white" />
 
             </div>
 
-            {/* Email */}
+            <span className="text-3xl font-bold glow-text-cyan">
 
-            <div className="space-y-2">
+              Zentrix AI
 
-              <label className="text-sm font-medium text-gray-300">
-                Email
-              </label>
+            </span>
 
-              <Input
+          </Link>
 
-                type="email"
+          <p className="text-muted-foreground">
 
-                placeholder="Enter your email"
+            Create your account to get started.
 
-                value={formData.email}
+          </p>
 
-                onChange={(e) =>
-                  updateForm("email", e.target.value)
-                }
+        </motion.div>
 
-                className="h-14 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-cyan-400 focus:ring-cyan-400/20 rounded-xl"
+        {/* Register Card */}
 
-              />
+        <motion.div
 
-            </div>
+          initial={{ opacity: 0, y: 20 }}
 
-            {/* Password */}
+          animate={{ opacity: 1, y: 0 }}
 
-            <div className="space-y-2">
+          transition={{ delay: 0.1 }}
 
-              <label className="text-sm font-medium text-gray-300">
-                Password
-              </label>
+        >
 
-              <div className="relative">
+          <GlassCard className="p-8 glow-purple">
 
-                <Input
+            <form onSubmit={handleSubmit} className="space-y-5">
 
-                  type={showPassword ? "text" : "password"}
+              {/* Name */}
 
-                  placeholder="Create password"
+              <div className="space-y-2">
 
-                  value={formData.password}
+                <label className="text-sm font-medium">
 
-                  onChange={(e) =>
-                    updateForm("password", e.target.value)
-                  }
+                  Full Name
 
-                  className="h-14 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-purple-400 focus:ring-purple-400/20 rounded-xl pr-12"
+                </label>
 
-                />
+                <div className="relative">
 
-                <button
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
 
-                  type="button"
+                  <input
 
-                  onClick={() =>
-                    setShowPassword(!showPassword)
-                  }
+                    type="text"
 
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                    value={formData.name}
 
-                >
+                    onChange={(e) =>
 
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
+                      setFormData({
 
-                </button>
+                        ...formData,
 
-              </div>
+                        name: e.target.value,
 
-            </div>
+                      })
 
-            {/* Features */}
+                    }
 
-            <div className="space-y-3 text-sm text-gray-400">
+                    placeholder="John Doe"
 
-              <div className="flex items-center gap-2">
+                    required
 
-                <Check className="w-4 h-4 text-cyan-400" />
+                    className="w-full pl-10 pr-4 py-3 rounded-lg bg-muted/50 border border-border focus:border-secondary focus:outline-none"
 
-                AI-powered collaboration
+                  />
+
+                </div>
 
               </div>
 
-              <div className="flex items-center gap-2">
+              {/* Email */}
 
-                <Check className="w-4 h-4 text-cyan-400" />
+              <div className="space-y-2">
 
-                Smart project management
+                <label className="text-sm font-medium">
 
-              </div>
+                  Email Address
 
-              <div className="flex items-center gap-2">
+                </label>
 
-                <Check className="w-4 h-4 text-cyan-400" />
+                <div className="relative">
 
-                Real-time developer workspace
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
 
-              </div>
+                  <input
 
-            </div>
+                    type="email"
 
-            {/* Register Button */}
+                    value={formData.email}
 
-            <Button
+                    onChange={(e) =>
 
-              onClick={handleRegister}
+                      setFormData({
 
-              className="w-full h-14 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-semibold rounded-xl shadow-lg shadow-cyan-500/25 transition-all duration-300 hover:scale-[1.02]"
+                        ...formData,
 
-            >
+                        email: e.target.value,
 
-              Create Account
+                      })
 
-              <ArrowRight className="w-5 h-5 ml-2" />
+                    }
 
-            </Button>
+                    placeholder="you@example.com"
 
-            {/* Divider */}
+                    required
 
-            <div className="relative my-8">
+                    className="w-full pl-10 pr-4 py-3 rounded-lg bg-muted/50 border border-border focus:border-secondary focus:outline-none"
 
-              <div className="absolute inset-0 flex items-center">
+                  />
 
-                <div className="w-full border-t border-white/10"></div>
-
-              </div>
-
-              <div className="relative flex justify-center text-sm">
-
-                <span className="px-4 bg-black text-gray-400">
-                  Or continue with
-                </span>
+                </div>
 
               </div>
 
-            </div>
+              {/* Password */}
 
-            {/* Social Buttons */}
+              <div className="space-y-2">
 
-            <div className="grid grid-cols-2 gap-4">
+                <label className="text-sm font-medium">
 
-              <Button
+                  Password
 
-                variant="outline"
+                </label>
 
-                className="h-12 bg-white/5 border-white/10 text-white hover:bg-white/10 rounded-xl"
+                <div className="relative">
+
+                  <input
+
+                    type={showPassword ? "text" : "password"}
+
+                    value={formData.password}
+
+                    onChange={(e) =>
+
+                      setFormData({
+
+                        ...formData,
+
+                        password: e.target.value,
+
+                      })
+
+                    }
+
+                    placeholder="Create password"
+
+                    required
+
+                    className="w-full pl-4 pr-12 py-3 rounded-lg bg-muted/50 border border-border focus:border-secondary focus:outline-none"
+
+                  />
+
+                  <button
+
+                    type="button"
+
+                    onClick={() => setShowPassword(!showPassword)}
+
+                    className="absolute right-3 top-1/2 -translate-y-1/2"
+
+                  >
+
+                    {showPassword ? (
+
+                      <EyeOff className="w-5 h-5" />
+
+                    ) : (
+
+                      <Eye className="w-5 h-5" />
+
+                    )}
+
+                  </button>
+
+                </div>
+
+                {/* Password Strength */}
+
+                {formData.password && (
+
+                  <div className="space-y-2">
+
+                    <div className="flex gap-1">
+
+                      {[0, 1, 2, 3].map((i) => (
+
+                        <div
+
+                          key={i}
+
+                          className={`h-1 flex-1 rounded-full transition-colors ${
+
+                            i < passwordStrength()
+
+                              ? strengthColors[passwordStrength() - 1]
+
+                              : "bg-muted"
+
+                          }`}
+
+                        />
+
+                      ))}
+
+                    </div>
+
+                    <p className="text-xs text-muted-foreground">
+
+                      Password strength:
+
+                      <span className="ml-1 text-green-400">
+
+                        {strengthLabels[passwordStrength() - 1] || "Too weak"}
+
+                      </span>
+
+                    </p>
+
+                  </div>
+
+                )}
+
+              </div>
+
+              {/* Confirm Password */}
+
+              <div className="space-y-2">
+
+                <label className="text-sm font-medium">
+
+                  Confirm Password
+
+                </label>
+
+                <div className="relative">
+
+                  <input
+
+                    type={showPassword ? "text" : "password"}
+
+                    value={formData.confirmPassword}
+
+                    onChange={(e) =>
+
+                      setFormData({
+
+                        ...formData,
+
+                        confirmPassword: e.target.value,
+
+                      })
+
+                    }
+
+                    placeholder="Confirm password"
+
+                    required
+
+                    className="w-full pl-4 pr-12 py-3 rounded-lg bg-muted/50 border border-border focus:border-secondary focus:outline-none"
+
+                  />
+
+                  {formData.confirmPassword &&
+
+                    formData.password === formData.confirmPassword && (
+
+                      <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-400" />
+
+                    )}
+
+                </div>
+
+              </div>
+
+              {/* Submit */}
+
+              <NeonButton
+
+                type="submit"
+
+                variant="purple"
+
+                className="w-full flex items-center justify-center gap-2"
+
+                disabled={isLoading}
 
               >
 
-                <Github className="w-5 h-5 mr-2" />
+                {isLoading ? (
 
-                GitHub
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
 
-              </Button>
+                ) : (
 
-              <Button
+                  <>
 
-                variant="outline"
+                    Create Account
 
-                className="h-12 bg-white/5 border-white/10 text-white hover:bg-white/10 rounded-xl"
+                    <ArrowRight className="w-5 h-5" />
 
-              >
+                  </>
 
-                <Chrome className="w-5 h-5 mr-2" />
+                )}
 
-                Google
+              </NeonButton>
 
-              </Button>
+            </form>
 
-            </div>
+            {/* Footer */}
 
-          </div>
-
-          {/* Footer */}
-
-          <div className="mt-8 text-center">
-
-            <p className="text-gray-400">
+            <p className="text-center mt-6 text-sm text-muted-foreground">
 
               Already have an account?{" "}
 
@@ -363,21 +488,21 @@ export default function RegisterPage() {
 
                 href="/login"
 
-                className="text-cyan-400 hover:text-cyan-300 font-medium"
+                className="text-secondary hover:underline"
 
               >
 
-                Sign In
+                Sign in
 
               </Link>
 
             </p>
 
-          </div>
+          </GlassCard>
 
-        </div>
+        </motion.div>
 
-      </motion.div>
+      </div>
 
     </div>
 

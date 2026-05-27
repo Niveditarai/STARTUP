@@ -1,10 +1,9 @@
-const router = require("express").Router();
+const express = require("express")
 
-const { askAI } = require("../controllers/aiController");
+const router = express.Router()
 
-const auth = require("../middleware/authMiddleware");
+const { chatAI } = require("../controllers/aiController")
 
-// protected AI route
-router.post("/ask", auth, askAI);
+router.post("/chat", chatAI)
 
-module.exports = router;
+module.exports = router
