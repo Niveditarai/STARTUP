@@ -4,6 +4,7 @@ import Link from "next/link"
 
 import { motion } from "framer-motion"
 
+
 import {
 
   LayoutDashboard,
@@ -41,6 +42,9 @@ import {
 import { cn } from "@/lib/utils"
 
 import { useState } from "react"
+import {
+  BookOpen,
+} from "lucide-react"
 
 const navItems = [
 
@@ -143,6 +147,11 @@ const navItems = [
     href: "/resume",
 
   },
+  {
+  icon: BookOpen,
+  label: "Study Planner",
+  href: "/study-plan",
+},
 
 ] as const
 

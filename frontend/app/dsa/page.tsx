@@ -12,7 +12,10 @@ import {
   Flame
 } from "lucide-react"
 import { GlassCard, ProgressRing, GradientText } from "@/components/zentrix/ui-components"
-import { Sidebar, TopNav } from "@/components/zentrix/navigation"
+import { Sidebar } from "@/components/zentrix/navigation"
+import { TopNav } from "@/components/zentrix/top-nav"
+import { useEffect, useState } from "react"
+import API from "@/services/api"
 import { 
   LineChart, 
   Line, 
@@ -54,11 +57,7 @@ const weeklyData = [
   { day: "Sun", easy: 4, medium: 3, hard: 1 },
 ]
 
-const difficultyBreakdown = [
-  { name: "Easy", value: 120, color: "oklch(0.7 0.15 145)" },
-  { name: "Medium", value: 95, color: "oklch(0.75 0.15 85)" },
-  { name: "Hard", value: 32, color: "oklch(0.65 0.2 25)" },
-]
+
 
 const radarData = [
   { subject: "Arrays", A: 85, fullMark: 100 },
@@ -83,7 +82,93 @@ const heatmapData = Array.from({ length: 365 }, (_, i) => ({
 }))
 
 export default function DSAPage() {
-  const totalSolved = difficultyBreakdown.reduce((acc, curr) => acc + curr.value, 0)
+  const [analytics, setAnalytics] = useState<any>(null)
+  const [recentProblems, setRecentProblems] =
+  useState<any[]>([])
+
+useEffect(() => {
+
+  const fetchAnalytics = async () => {
+
+    try {
+
+      const user = JSON.parse(
+        localStorage.getItem("user") || "{}"
+      )
+
+      const res = await API.get(
+        `/dsa-analytics/${user._id}`
+      )
+
+      setAnalytics(res.data)
+      const recentRes = await API.get(
+  `/problems/recent/${user._id}`
+)
+
+setRecentProblems(
+  recentRes.data
+)
+
+
+    } catch (error) {
+
+      console.log(error)
+
+    }
+
+  }
+
+  fetchAnalytics()
+
+}, [])
+const difficultyBreakdown = analytics
+  ? [
+      {
+        name: "Easy",
+        value: analytics.easy,
+        color: "#22c55e",
+      },
+      {
+        name: "Medium",
+        value: analytics.medium,
+        color: "#f59e0b",
+      },
+      {
+        name: "Hard",
+        value: analytics.hard,
+        color: "#ef4444",
+      },
+    ]
+  : [
+      {
+        name: "Easy",
+        value: 0,
+        color: "#22c55e",
+      },
+      {
+        name: "Medium",
+        value: 0,
+        color: "#f59e0b",
+      },
+      {
+        name: "Hard",
+        value: 0,
+        color: "#ef4444",
+      },
+    ]
+  const totalSolved =
+analytics?.totalSolved || 0
+  const readinessScore = 78
+
+const aiInsights = {
+  strengths: ["Arrays", "Strings", "Sorting"],
+  weaknesses: ["Graphs", "Dynamic Programming"],
+  recommendations: [
+    "Solve 15 Graph problems",
+    "Solve 10 DP problems",
+    "Participate in 2 contests this week",
+  ],
+}
   
   return (
     <div className="min-h-screen gradient-bg">
@@ -285,6 +370,43 @@ export default function DSAPage() {
                 ))}
               </div>
             </GlassCard>
+           <GlassCard glowColor="cyan" hover={false}>
+  <div className="flex items-center justify-between mb-6">
+    <h3 className="text-lg font-semibold">
+      Interview Readiness
+    </h3>
+
+    <Zap className="w-6 h-6 text-yellow-400" />
+  </div>
+
+  <div className="flex items-center gap-8">
+
+    <div className="text-6xl font-bold text-cyan-400">
+      {readinessScore}%
+    </div>
+
+    <div className="space-y-2">
+
+      <p className="text-emerald-400">
+        ✅ Ready for OA Rounds
+      </p>
+
+      <p className="text-emerald-400">
+        ✅ Internship Interviews
+      </p>
+
+      <p className="text-amber-400">
+        ⚠ Improve Graphs
+      </p>
+
+      <p className="text-amber-400">
+        ⚠ Improve Dynamic Programming
+      </p>
+
+    </div>
+
+  </div>
+</GlassCard> 
 
             {/* Bottom Row */}
             <div className="grid lg:grid-cols-2 gap-6">
@@ -317,6 +439,57 @@ export default function DSAPage() {
                   <span>More</span>
                 </div>
               </GlassCard>
+              <GlassCard glowColor="purple" hover={false}>
+  <h3 className="text-lg font-semibold mb-6">
+    AI Insights
+  </h3>
+
+  <div className="grid md:grid-cols-3 gap-6">
+
+    <div>
+      <h4 className="font-semibold text-emerald-400 mb-3">
+        Strengths
+      </h4>
+
+      <ul className="space-y-2">
+        {aiInsights.strengths.map((item) => (
+          <li key={item}>
+            ✅ {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div>
+      <h4 className="font-semibold text-amber-400 mb-3">
+        Weak Areas
+      </h4>
+
+      <ul className="space-y-2">
+        {aiInsights.weaknesses.map((item) => (
+          <li key={item}>
+            ⚠ {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div>
+      <h4 className="font-semibold text-cyan-400 mb-3">
+        Recommendations
+      </h4>
+
+      <ul className="space-y-2">
+        {aiInsights.recommendations.map((item) => (
+          <li key={item}>
+            🎯 {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+
+  </div>
+</GlassCard>
 
               {/* Recent Problems */}
               <GlassCard glowColor="purple" hover={false}>
@@ -355,3 +528,52 @@ export default function DSAPage() {
     </div>
   )
 }
+<GlassCard glowColor="cyan" hover={false}>
+  <h3 className="text-lg font-semibold mb-6">
+    Contest Analytics
+  </h3>
+
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+    <div>
+      <p className="text-muted-foreground text-sm">
+        Current Rating
+      </p>
+
+      <p className="text-2xl font-bold">
+        1650
+      </p>
+    </div>
+
+    <div>
+      <p className="text-muted-foreground text-sm">
+        Best Rating
+      </p>
+
+      <p className="text-2xl font-bold text-cyan-400">
+        1720
+      </p>
+    </div>
+
+    <div>
+      <p className="text-muted-foreground text-sm">
+        Global Rank
+      </p>
+
+      <p className="text-2xl font-bold">
+        4521
+      </p>
+    </div>
+
+    <div>
+      <p className="text-muted-foreground text-sm">
+        Last Contest
+      </p>
+
+      <p className="text-2xl font-bold text-emerald-400">
+        +82
+      </p>
+    </div>
+
+  </div>
+</GlassCard>

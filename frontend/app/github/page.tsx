@@ -14,7 +14,8 @@ import {
   Eye
 } from "lucide-react"
 import { GlassCard, GradientText, ProgressRing } from "@/components/zentrix/ui-components"
-import { Sidebar, TopNav } from "@/components/zentrix/navigation"
+import { Sidebar } from "@/components/zentrix/navigation"
+import { TopNav } from "@/components/zentrix/top-nav"
 import { 
   AreaChart, 
   Area, 
